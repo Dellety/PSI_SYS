@@ -1,5 +1,5 @@
 import request from './request'
-import type { LoginRequest, TokenResponse, User } from './types'
+import type { LoginRequest, TokenResponse, Employee } from './types'
 
 export function login(data: LoginRequest) {
   return request.post<TokenResponse>('/auth/login', data)
@@ -10,5 +10,5 @@ export function refreshToken(refreshToken: string) {
 }
 
 export function getMe() {
-  return request.get<User>('/auth/me')
+  return request.get<Employee>('/auth/me')
 }

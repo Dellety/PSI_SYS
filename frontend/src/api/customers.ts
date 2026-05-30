@@ -1,22 +1,35 @@
 import request from './request'
 import type { Customer, PaginatedResponse } from './types'
 
-export function getCustomers(params: { page: number; page_size: number; keyword?: string }) {
-  return request.get<PaginatedResponse<Customer>>('/customers', { params })
-}
+export const getCustomers = (params: { page: number; page_size: number; keyword?: string }) =>
+  request.get<PaginatedResponse<Customer>>('/customers', { params })
 
-export function getCustomer(id: number) {
-  return request.get<Customer>(`/customers/${id}`)
-}
+export const getCustomer = (id: number) =>
+  request.get<Customer>(`/customers/${id}`)
 
-export function createCustomer(data: Partial<Customer>) {
-  return request.post<Customer>('/customers', data)
-}
+export const createCustomer = (data: any) =>
+  request.post<Customer>('/customers', data)
 
-export function updateCustomer(id: number, data: Partial<Customer>) {
-  return request.put<Customer>(`/customers/${id}`, data)
-}
+export const updateCustomer = (id: number, data: any) =>
+  request.put<Customer>(`/customers/${id}`, data)
 
-export function deleteCustomer(id: number) {
-  return request.delete(`/customers/${id}`)
-}
+export const toggleCustomerStatus = (id: number) =>
+  request.put(`/customers/${id}/status`)
+
+export const getSimpleCustomers = () =>
+  request.get('/customers/simple-list')
+
+export const addCustomerAddress = (id: number, data: any) =>
+  request.post(`/customers/${id}/addresses`, data)
+
+export const updateCustomerAddress = (id: number, addressId: number, data: any) =>
+  request.put(`/customers/${id}/addresses/${addressId}`, data)
+
+export const deleteCustomerAddress = (id: number, addressId: number) =>
+  request.delete(`/customers/${id}/addresses/${addressId}`)
+
+export const addCustomerInvoice = (id: number, data: any) =>
+  request.post(`/customers/${id}/invoices`, data)
+
+export const updateCustomerInvoice = (id: number, invoiceId: number, data: any) =>
+  request.put(`/customers/${id}/invoices/${invoiceId}`, data)

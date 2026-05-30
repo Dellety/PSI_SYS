@@ -1,75 +1,95 @@
-# PSI_SYS - 备件供应链跟踪系统
+# PSI_SYS - 备件订货交付跟踪系统
 
 ## 项目概述
 
-代理商备件供应链全流程跟踪系统，覆盖从客户订货到最终交货的完整生命周期。
+代理商备件供应链全流程跟踪系统，覆盖从工厂提出备件需求到客户签收归档的完整生命周期（11步业务流程）。
 
 ## 业务流程
 
 ```
-客户订货 → 采购（向供应商采购）→ 发货（物流跟踪）→ 交货（客户签收）
+工厂提出需求 → 客户询价 → 项目负责人确认内容 → 销售报价/签合同
+→ 销售通知下料 → 项目提交采购单 → 采购员采购 → 到货验收
+→ 确认地址/发货 → 客户签收/归档 → 销售关闭
 ```
 
-每个环节需有完整的操作记录和状态变更历史。
+逆向流程：销售发起退换货 → 项目确认 → 采购员执行 → 回到正常流程
 
-## 用户角色
+## 用户角色（4种）
 
-| 角色 | 说明 |
-|------|------|
-| 内部管理人员 | 管理整个系统，查看所有数据 |
-| 客户 | 下单订货，查看订单和物流状态 |
-| 供应商 | 确认订单，更新发货信息 |
-| 采购员 | 负责采购环节的操作 |
-| 项目经理 | 统筹项目，查看项目维度数据 |
-| 发货人员 | 管理发货和物流 |
-| 销售人员 | 维护客户关系，跟进订单 |
+| 角色 | 说明 | 关键权限 |
+|------|------|----------|
+| 系统管理员 | 系统维护，不参与业务 | 全部可见，管理人员/配置 |
+| 销售员 | 面向客户的对外接口人 | 可见价格，不可操作采购 |
+| 项目负责人 | 流程中枢 | 可见物料/进度，不可见任何价格 |
+| 采购员 | 面向供应商的采购接口人 | 可见采购价，不可见客户报价 |
+
+## 订单状态机（15种状态）
+
+```
+pending_confirm → pending_quote → pending_contract → pending_dispatch
+→ pending_purchase → purchasing → pending_inspect → inspecting
+→ pending_ship → shipped → pending_receipt → received → closed
+
+异常: return_exchange, cancelled
+```
 
 ## 技术栈
 
-- **后端**: Python FastAPI（API-first 设计，便于后续对接 OA 系统）
-- **前端**: React + Ant Design Pro（企业级中文 UI 组件）
-- **数据库**: MySQL
-- **ORM**: SQLAlchemy
-- **认证**: JWT + RBAC（基于角色的访问控制）
-- **界面语言**: 中文
+- **后端**: FastAPI + SQLAlchemy 2.0 + MySQL（开发用 SQLite）
+- **前端**: React 18 + TypeScript + Ant Design 5 + Vite + Zustand
+- **认证**: JWT + RBAC（Employee 模型，4角色）
+- **图表**: ECharts
 
-## 部署方式
+## 开发计划
 
-- 内部服务器部署（on-premise）
-- OA 系统对接方式：REST API
+计划文档：`/Users/doni/.claude/plans/users-doni-downloads-md-psi-sys-new-inu-cached-aho.md`
 
-## 核心功能
+### 阶段总览
 
-### 订单管理（订货）
-- 客户下单、订单编辑、订单状态跟踪
-- 备件信息管理（型号、规格、品牌等）
+| 阶段 | 范围 | 状态 |
+|------|------|------|
+| Phase 0 | 基础重构（清理旧模型，搭建新骨架） | ✅ 完成 |
+| Phase 1 | 基础数据 CRUD（人员/物料/供应商/客户） | ✅ 完成 |
+| Phase 2 | 核心订单模块（合同/订单管理 + 状态机） | ⏳ 待开发 |
+| Phase 3 | 采购模块（采购单 + 拆单） | ⏳ 待开发 |
+| Phase 4 | 验收/发货/签收/退换货 | ⏳ 待开发 |
+| Phase 5 | 操作日志 + 邮件草稿 | ⏳ 待开发 |
+| Phase 6 | 报表看板（5个看板 + ECharts） | ⏳ 待开发 |
+| Phase 7 | 系统配置 + 完善 | ⏳ 待开发 |
 
-### 采购管理
-- 根据订单生成采购需求
-- 供应商报价对比
-- 采购单创建与审批
+### 数据库表（13张）
 
-### 发货/物流管理
-- 发货单创建
-- 物流信息跟踪
-- 发货通知
+employee, material, supplier + supplier_material, customer + customer_address + customer_invoice, contract_order + contract_order_item, purchase_order, inspection_record, shipment_record, receipt_record, return_exchange_record, email_draft, operation_log, system_config
 
-### 交货管理
-- 交货确认
-- 签收记录
-- 异常处理（破损、短缺等）
+## 后端结构
 
-### 通用功能
-- 全流程操作日志/审计追踪
-- 文件附件管理（报价单、发票、发货单等）
-- 角色权限控制
-- 数据统计与报表
+```
+backend/app/
+  models/          # 13个模型文件（employee, material, supplier, customer, contract_order 等）
+  schemas/         # Pydantic schemas（employee, material, supplier, customer, common）
+  api/             # API 路由（auth, employees, materials, suppliers, customers）
+  services/        # 业务服务（number_generator, 后续: order_state_machine 等）
+  core/            # deps.py(认证), permissions.py(字段过滤), security.py(JWT)
+```
+
+## 前端结构
+
+```
+frontend/src/
+  api/types.ts     # 所有类型定义（EmployeeRole, OrderStatus, 各接口）
+  api/             # API 调用层（employees, materials, suppliers, customers）
+  pages/           # 页面组件（employees, materials, suppliers, customers）
+  stores/auth.ts   # 认证状态（Zustand, Employee 模型）
+  layouts/         # MainLayout（基于角色的菜单过滤）
+```
 
 ## 重要修改记录
 
-### 2026-05-30 项目初始化
-- 创建 monorepo 结构：backend/ (FastAPI) + frontend/ (React + AntD)
-- 数据库模型：users, customers, suppliers, parts, orders, order_items, procurements, procurement_items, shipments, shipment_items, deliveries, delivery_items, attachments, audit_logs（共 14 张表）
-- 后端 API：认证(JWT)、基础数据 CRUD(users/customers/suppliers/parts)、业务流程(orders/procurements/shipments/deliveries)、报表(reports)
-- 前端：登录页、主布局(侧边栏+顶栏)、仪表盘、订单管理页（含新建/详情/筛选）
-- 部署：docker-compose.yml (MySQL 8.0 + 后端)、Dockerfile
+### 2026-05-30 项目重构（Phase 0 + Phase 1）
+- 角色 7→4（删除 customer/supplier/shipper 外部角色）
+- 数据库模型全部重写：13张新表替代旧的14张表
+- 订单状态 7→15（13种正向 + return_exchange + cancelled）
+- 后端：Employee 模型替代 User，新的 deps.py/permissions.py/number_generator
+- 前端：types.ts 全部重写，基于角色的菜单权限，4个 CRUD 页面
+- 已实现 API：auth, employees, materials, suppliers, customers（含子表）
+- 待实现：contract_orders, purchase_orders, inspection, shipment, receipt, return_exchange, email_drafts, operation_logs, dashboard, reports, system_config

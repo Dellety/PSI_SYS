@@ -1,10 +1,10 @@
 import { create } from 'zustand'
 import * as authApi from '@/api/auth'
-import type { User } from '@/api/types'
+import type { Employee } from '@/api/types'
 
 interface AuthState {
   token: string | null
-  user: User | null
+  user: Employee | null
   isAuthenticated: boolean
   login: (username: string, password: string) => Promise<void>
   logout: () => void

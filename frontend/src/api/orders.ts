@@ -1,12 +1,12 @@
 import request from './request'
-import type { Order, PaginatedResponse } from './types'
+import type { ContractOrder, PaginatedResponse } from './types'
 
 export function getOrders(params?: Record<string, string | number>) {
-  return request.get<PaginatedResponse<Order>>('/orders', { params })
+  return request.get<PaginatedResponse<ContractOrder>>('/orders', { params })
 }
 
 export function getOrder(id: number) {
-  return request.get<Order>(`/orders/${id}`)
+  return request.get<ContractOrder>(`/orders/${id}`)
 }
 
 export function createOrder(data: Record<string, unknown>) {

@@ -5,15 +5,10 @@ import { useAuthStore } from '@/stores/auth'
 import MainLayout from '@/layouts/MainLayout'
 import LoginPage from '@/pages/login'
 import DashboardPage from '@/pages/dashboard'
-import OrdersPage from '@/pages/orders'
-import ProcurementsPage from '@/pages/procurements'
-import ShipmentsPage from '@/pages/shipments'
-import DeliveriesPage from '@/pages/deliveries'
-import ReportsPage from '@/pages/reports'
-import CustomersPage from '@/pages/customers'
-import SuppliersPage from '@/pages/suppliers'
-import PartsPage from '@/pages/parts'
-import UsersPage from '@/pages/users'
+import EmployeePage from '@/pages/employees'
+import MaterialPage from '@/pages/materials'
+import SupplierPage from '@/pages/suppliers'
+import CustomerPage from '@/pages/customers'
 
 function PlaceholderPage({ title }: { title: string }) {
   return <div style={{ textAlign: 'center', padding: 48 }}>
@@ -62,15 +57,16 @@ export default function App() {
         >
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="orders" element={<OrdersPage />} />
-          <Route path="procurements" element={<ProcurementsPage />} />
-          <Route path="shipments" element={<ShipmentsPage />} />
-          <Route path="deliveries" element={<DeliveriesPage />} />
-          <Route path="parts" element={<PartsPage />} />
-          <Route path="customers" element={<CustomersPage />} />
-          <Route path="suppliers" element={<SuppliersPage />} />
-          <Route path="users" element={<UsersPage />} />
-          <Route path="reports" element={<ReportsPage />} />
+          <Route path="employees" element={<EmployeePage />} />
+          <Route path="materials" element={<MaterialPage />} />
+          <Route path="suppliers" element={<SupplierPage />} />
+          <Route path="customers" element={<CustomerPage />} />
+          <Route path="orders" element={<PlaceholderPage title="订单管理" />} />
+          <Route path="purchases" element={<PlaceholderPage title="采购管理" />} />
+          <Route path="emails" element={<PlaceholderPage title="邮件通知" />} />
+          <Route path="logs" element={<PlaceholderPage title="操作日志" />} />
+          <Route path="reports" element={<PlaceholderPage title="统计报表" />} />
+          <Route path="settings" element={<PlaceholderPage title="系统配置" />} />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
