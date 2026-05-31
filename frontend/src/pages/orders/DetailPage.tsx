@@ -6,6 +6,7 @@ import {
 } from 'antd'
 import {
   ThunderboltFilled, ArrowLeftOutlined, PlusOutlined, CheckCircleOutlined,
+  MailOutlined,
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import * as orderApi from '@/api/contractOrders'
@@ -14,7 +15,9 @@ import * as inspectionApi from '@/api/inspectionRecords'
 import * as shipmentApi from '@/api/shipmentRecords'
 import * as receiptApi from '@/api/receiptRecords'
 import * as returnApi from '@/api/returnExchanges'
-import { OrderStatusLabels, type ContractOrderItem, type PurchaseOrder } from '@/api/types'
+import * as logApi from '@/api/operationLogs'
+import * as emailApi from '@/api/emailDrafts'
+import { OrderStatusLabels, type ContractOrderItem, type PurchaseOrder, type OperationLog, type EmailDraft } from '@/api/types'
 import { useAuthStore } from '@/stores/auth'
 import { EmployeeRole } from '@/api/types'
 
@@ -153,6 +156,15 @@ export default function OrderDetailPage() {
   const [confirmReturnSaving, setConfirmReturnSaving] = useState<number | null>(null)
   const [completeReturnSaving, setCompleteReturnSaving] = useState<number | null>(null)
 
+  // ---------- operation logs ----------
+  const [opLogs, setOpLogs] = useState<OperationLog[]>([])
+
+  // ---------- email drafts ----------
+  const [orderEmails, setOrderEmails] = useState<EmailDraft[]>([])
+  const [emailCreateOpen, setEmailCreateOpen] = useState(false)
+  const [emailForm] = Form.useForm()
+  const [emailSaving, setEmailSaving] = useState(false)
+
   // ---------- fetch order ----------
   const fetchOrder = useCallback(async () => {
     if (!orderId) return
@@ -175,18 +187,22 @@ export default function OrderDetailPage() {
   const fetchSubData = useCallback(async () => {
     if (!orderId) return
     try {
-      const [pRes, iRes, sRes, rRes, retRes] = await Promise.allSettled([
+      const [pRes, iRes, sRes, rRes, retRes, logRes, emailRes] = await Promise.allSettled([
         purchaseApi.getOrderPurchases(orderId),
         inspectionApi.getOrderInspections(orderId),
         shipmentApi.getOrderShipments(orderId),
         receiptApi.getOrderReceipts(orderId),
         returnApi.getOrderReturns(orderId),
+        logApi.getOrderLogs(orderId),
+        emailApi.getOrderEmailDrafts(orderId),
       ])
       if (pRes.status === 'fulfilled') setPurchases(Array.isArray(pRes.value.data) ? pRes.value.data : (pRes.value.data as any).items || [])
       if (iRes.status === 'fulfilled') setInspections(Array.isArray(iRes.value.data) ? iRes.value.data : [])
       if (sRes.status === 'fulfilled') setShipments(Array.isArray(sRes.value.data) ? sRes.value.data : [])
       if (rRes.status === 'fulfilled') setReceipts(Array.isArray(rRes.value.data) ? rRes.value.data : [])
       if (retRes.status === 'fulfilled') setReturns(Array.isArray(retRes.value.data) ? retRes.value.data : (retRes.value.data as any).items || [])
+      if (logRes.status === 'fulfilled') setOpLogs(Array.isArray(logRes.value.data) ? logRes.value.data : [])
+      if (emailRes.status === 'fulfilled') setOrderEmails(Array.isArray(emailRes.value.data) ? emailRes.value.data : [])
     } catch {
       // silently fail for sub-data
     }
@@ -464,6 +480,44 @@ export default function OrderDetailPage() {
     }
   }
 
+  // ---------- email creation ----------
+  const openEmailCreate = () => {
+    emailForm.resetFields()
+    emailForm.setFieldsValue({
+      trigger_event: '手动创建',
+      order_id: orderId,
+      subject: `关于订单 ${order?.order_no || orderId}`,
+    })
+    setEmailCreateOpen(true)
+  }
+
+  const handleEmailCreate = async () => {
+    try {
+      const values = await emailForm.validateFields()
+      setEmailSaving(true)
+      await emailApi.createEmailDraft({ ...values, order_id: orderId })
+      message.success('邮件草稿创建成功')
+      setEmailCreateOpen(false)
+      fetchSubData()
+    } catch (err: any) {
+      if (err?.response?.data?.detail) {
+        message.error(err.response.data.detail)
+      } else if (!err?.errorFields) {
+        message.error('创建失败')
+      }
+    } finally {
+      setEmailSaving(false)
+    }
+  }
+
+  // ---------- op log role labels ----------
+  const LOG_ROLE_MAP: Record<number, string> = {
+    1: '系统管理员',
+    2: '销售员',
+    3: '项目负责人',
+    4: '采购员',
+  }
+
   // ---------- price visibility ----------
   const canSeePrices = user?.role === EmployeeRole.ADMIN || user?.role === EmployeeRole.SALES
 
@@ -562,6 +616,7 @@ export default function OrderDetailPage() {
         }
         extra={
           <Space wrap>
+            <Button icon={<MailOutlined />} onClick={openEmailCreate}>创建邮件</Button>
             {actions.map((action) => (
               <Popconfirm
                 key={action.status}
@@ -850,6 +905,31 @@ export default function OrderDetailPage() {
         </Card>
       )}
 
+      {/* ========== Operation Log Timeline ========== */}
+      <Card title="操作日志" style={{ marginTop: 16 }} size="small">
+        {opLogs.length > 0 ? (
+          <Timeline
+            mode="left"
+            items={opLogs.map((log) => ({
+              color: 'blue',
+              children: (
+                <div>
+                  <span style={{ color: '#999', marginRight: 8 }}>
+                    {log.created_at ? dayjs(log.created_at).format('YYYY-MM-DD HH:mm') : ''}
+                  </span>
+                  <strong>{log.operator_name}</strong>
+                  <Tag style={{ marginLeft: 4 }}>{LOG_ROLE_MAP[log.operator_role] || log.operator_role}</Tag>
+                  <span style={{ marginLeft: 4 }}>{log.module} - {log.action}</span>
+                  {log.detail && <span style={{ color: '#666', marginLeft: 8 }}>({log.detail})</span>}
+                </div>
+              ),
+            }))}
+          />
+        ) : (
+          <div style={{ color: '#999', textAlign: 'center', padding: 16 }}>暂无操作日志</div>
+        )}
+      </Card>
+
       {/* status timeline */}
       <Card title="订单进度" style={{ marginTop: 16 }} size="small">
         <Timeline
@@ -864,6 +944,39 @@ export default function OrderDetailPage() {
           }))}
         />
       </Card>
+
+      {/* ========== Email Drafts Section ========== */}
+      {orderEmails.length > 0 && (
+        <Card title="邮件记录" style={{ marginTop: 16 }} size="small">
+          <Table
+            rowKey="id"
+            size="small"
+            pagination={false}
+            dataSource={orderEmails}
+            columns={[
+              { title: '触发事件', dataIndex: 'trigger_event', width: 120 },
+              { title: '收件人', dataIndex: 'recipient', width: 180, ellipsis: true },
+              { title: '主题', dataIndex: 'subject', width: 200, ellipsis: true },
+              {
+                title: '状态', dataIndex: 'status', width: 90,
+                render: (v: number) => {
+                  const m: Record<number, { label: string; color: string }> = {
+                    1: { label: '待确认', color: 'orange' },
+                    2: { label: '已发送', color: 'green' },
+                    3: { label: '已取消', color: 'default' },
+                  }
+                  const s = m[v]
+                  return s ? <Tag color={s.color}>{s.label}</Tag> : v
+                },
+              },
+              {
+                title: '创建时间', dataIndex: 'created_at', width: 140,
+                render: (v: string) => v ? dayjs(v).format('YYYY-MM-DD HH:mm') : '-',
+              },
+            ]}
+          />
+        </Card>
+      )}
 
       {/* contract info */}
       <Card
@@ -1071,6 +1184,36 @@ export default function OrderDetailPage() {
           </Form.Item>
           <Form.Item name="remark" label="备注">
             <Input.TextArea rows={2} placeholder="请输入备注" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* email create modal */}
+      <Modal
+        title="创建邮件草稿"
+        open={emailCreateOpen}
+        onOk={handleEmailCreate}
+        onCancel={() => setEmailCreateOpen(false)}
+        confirmLoading={emailSaving}
+        destroyOnClose
+        width={600}
+        okText="创建"
+      >
+        <Form form={emailForm} layout="vertical" preserve={false}>
+          <Form.Item name="trigger_event" label="触发事件" rules={[{ required: true, message: '请输入触发事件' }]}>
+            <Input placeholder="如：订单创建、发货通知等" />
+          </Form.Item>
+          <Form.Item name="recipient" label="收件人" rules={[{ required: true, message: '请输入收件人' }]}>
+            <Input placeholder="请输入收件人邮箱" />
+          </Form.Item>
+          <Form.Item name="cc" label="抄送">
+            <Input placeholder="抄送邮箱，多个用逗号分隔" />
+          </Form.Item>
+          <Form.Item name="subject" label="主题" rules={[{ required: true, message: '请输入主题' }]}>
+            <Input placeholder="请输入邮件主题" />
+          </Form.Item>
+          <Form.Item name="body" label="正文" rules={[{ required: true, message: '请输入正文' }]}>
+            <Input.TextArea rows={6} placeholder="请输入邮件正文" />
           </Form.Item>
         </Form>
       </Modal>

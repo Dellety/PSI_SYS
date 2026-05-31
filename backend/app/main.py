@@ -60,3 +60,16 @@ app.include_router(inspection_records.router, prefix="/api/inspections", tags=["
 app.include_router(shipment_records.router, prefix="/api/shipments", tags=["发货管理"])
 app.include_router(receipt_records.router, prefix="/api/receipts", tags=["签收管理"])
 app.include_router(return_exchanges.router, prefix="/api/returns", tags=["退换货"])
+
+# Phase 5 + Phase 6 路由:
+from app.api import operation_logs, email_drafts
+from app.api import dashboard as dashboard_api
+from app.api import reports as reports_api
+app.include_router(operation_logs.router, prefix="/api/logs", tags=["操作日志"])
+app.include_router(email_drafts.router, prefix="/api/emails", tags=["邮件通知"])
+app.include_router(dashboard_api.router, prefix="/api/dashboard", tags=["仪表盘"])
+app.include_router(reports_api.router, prefix="/api/reports", tags=["统计报表"])
+
+# Phase 7 系统配置:
+from app.api import system_config
+app.include_router(system_config.router, prefix="/api/settings", tags=["系统配置"])

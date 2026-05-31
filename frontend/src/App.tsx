@@ -13,13 +13,10 @@ import OrderListPage from '@/pages/orders'
 import OrderDetailPage from '@/pages/orders/DetailPage'
 import PurchaseListPage from '@/pages/purchases'
 import ShipmentListPage from '@/pages/shipments'
-
-function PlaceholderPage({ title }: { title: string }) {
-  return <div style={{ textAlign: 'center', padding: 48 }}>
-    <h2>{title}</h2>
-    <p style={{ color: '#999', marginTop: 8 }}>功能开发中...</p>
-  </div>
-}
+import ReportsPage from '@/pages/reports'
+import LogsPage from '@/pages/logs'
+import EmailsPage from '@/pages/emails'
+import SettingsPage from '@/pages/settings'
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loadUser } = useAuthStore()
@@ -69,10 +66,10 @@ export default function App() {
           <Route path="orders/:id" element={<OrderDetailPage />} />
           <Route path="purchases" element={<PurchaseListPage />} />
           <Route path="shipments" element={<ShipmentListPage />} />
-          <Route path="emails" element={<PlaceholderPage title="邮件通知" />} />
-          <Route path="logs" element={<PlaceholderPage title="操作日志" />} />
-          <Route path="reports" element={<PlaceholderPage title="统计报表" />} />
-          <Route path="settings" element={<PlaceholderPage title="系统配置" />} />
+          <Route path="emails" element={<EmailsPage />} />
+          <Route path="logs" element={<LogsPage />} />
+          <Route path="reports" element={<ReportsPage />} />
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
