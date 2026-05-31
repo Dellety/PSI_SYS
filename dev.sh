@@ -46,10 +46,10 @@ start_backend() {
     # 检查是否需要初始化种子数据
     if [ ! -f psi_sys.db ] || [ ! -s psi_sys.db ]; then
         log "初始化数据库..."
-        ./venv/bin/python -m app.seed
+        ./.venv/bin/python -m app.seed
     fi
 
-    ./venv/bin/uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 \
+    ./.venv/bin/uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 \
         > "$PID_DIR/backend.log" 2>&1 &
     echo $! > "$PID_DIR/backend.pid"
 
@@ -145,6 +145,36 @@ case "${1:-start}" in
         log "✅ 全部就绪！"
         show_status
         log "测试账号: admin/admin123, sales01/123456, pm01/123456, buyer01/123456"
+        echo ""
+
+        # 交互式停止功能
+        log "输入 ${YELLOW}stop${NC} 停止服务 (或按 Ctrl+C 退出)"
+        echo -n "> "
+        while read -r cmd; do
+            case "$cmd" in
+                stop|STOP|s)
+                    echo ""
+                    log "停止开发环境..."
+                    stop_service frontend 5173
+                    stop_service backend 8000
+                    log "已停止"
+                    exit 0
+                    ;;
+                quit|exit|q)
+                    echo ""
+                    log "退出监控（服务继续运行）"
+                    exit 0
+                    ;;
+                status)
+                    show_status
+                    ;;
+                *)
+                    warn "未知命令: $cmd"
+                    log "可用命令: stop (停止服务), status (查看状态), quit (退出监控)"
+                    ;;
+            esac
+            echo -n "> "
+        done
         ;;
 
     stop)
@@ -169,7 +199,7 @@ case "${1:-start}" in
         cd "$BACKEND_DIR"
         # 删除旧数据库重新创建
         rm -f psi_sys.db
-        ./venv/bin/python -m app.seed
+        ./.venv/bin/python -m app.seed
         log "种子数据初始化完成"
         ;;
 
