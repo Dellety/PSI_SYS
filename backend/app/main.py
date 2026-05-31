@@ -48,5 +48,7 @@ app.include_router(employees.router, prefix="/api/employees", tags=["人员花�
 app.include_router(materials.router, prefix="/api/materials", tags=["物料库"])
 from app.api import suppliers as suppliers_api
 from app.api import customers as customers_api
+from app.api import contract_orders
 app.include_router(suppliers_api.router, prefix="/api/suppliers", tags=["供应商"])
 app.include_router(customers_api.router, prefix="/api/customers", tags=["客户"])
+app.include_router(contract_orders.router, prefix="/api/orders", tags=["订单管理"])

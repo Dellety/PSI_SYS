@@ -60,6 +60,9 @@ class ContractOrder(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     items: Mapped[list["ContractOrderItem"]] = relationship(back_populates="order", cascade="all, delete-orphan", foreign_keys="ContractOrderItem.order_id")
+    customer = relationship("Customer", foreign_keys=[customer_id], lazy="selectin")
+    sales = relationship("Employee", foreign_keys=[sales_id], lazy="selectin")
+    pm = relationship("Employee", foreign_keys=[project_manager_id], lazy="selectin")
 
 
 class ContractOrderItem(Base):
