@@ -11,6 +11,8 @@ import SupplierPage from '@/pages/suppliers'
 import CustomerPage from '@/pages/customers'
 import OrderListPage from '@/pages/orders'
 import OrderDetailPage from '@/pages/orders/DetailPage'
+import PurchaseListPage from '@/pages/purchases'
+import ShipmentListPage from '@/pages/shipments'
 
 function PlaceholderPage({ title }: { title: string }) {
   return <div style={{ textAlign: 'center', padding: 48 }}>
@@ -65,7 +67,8 @@ export default function App() {
           <Route path="customers" element={<CustomerPage />} />
           <Route path="orders" element={<OrderListPage />} />
           <Route path="orders/:id" element={<OrderDetailPage />} />
-          <Route path="purchases" element={<PlaceholderPage title="采购管理" />} />
+          <Route path="purchases" element={<PurchaseListPage />} />
+          <Route path="shipments" element={<ShipmentListPage />} />
           <Route path="emails" element={<PlaceholderPage title="邮件通知" />} />
           <Route path="logs" element={<PlaceholderPage title="操作日志" />} />
           <Route path="reports" element={<PlaceholderPage title="统计报表" />} />

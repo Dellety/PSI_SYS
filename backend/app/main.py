@@ -52,3 +52,11 @@ from app.api import contract_orders
 app.include_router(suppliers_api.router, prefix="/api/suppliers", tags=["供应商"])
 app.include_router(customers_api.router, prefix="/api/customers", tags=["客户"])
 app.include_router(contract_orders.router, prefix="/api/orders", tags=["订单管理"])
+
+# Phase 3 + Phase 4 路由:
+from app.api import purchase_orders, inspection_records, shipment_records, receipt_records, return_exchanges
+app.include_router(purchase_orders.router, prefix="/api/purchases", tags=["采购管理"])
+app.include_router(inspection_records.router, prefix="/api/inspections", tags=["验收管理"])
+app.include_router(shipment_records.router, prefix="/api/shipments", tags=["发货管理"])
+app.include_router(receipt_records.router, prefix="/api/receipts", tags=["签收管理"])
+app.include_router(return_exchanges.router, prefix="/api/returns", tags=["退换货"])

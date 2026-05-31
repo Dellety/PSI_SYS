@@ -110,9 +110,9 @@ STATUS_TRANSITIONS = {
 |------|------|------|
 | Phase 0 | 基础重构（清理旧模型，搭建新骨架） | 完成 |
 | Phase 1 | 基础数据 CRUD（人员/物料/供应商/客户） | 完成 |
-| Phase 2 | 核心订单模块（合同/订单管理 + 状态机） | 待开发 |
-| Phase 3 | 采购模块（采购单 + 拆单） | 待开发 |
-| Phase 4 | 验收/发货/签收/退换货 | 待开发 |
+| Phase 2 | 核心订单模块（合同/订单管理 + 状态机） | 完成（前端） |
+| Phase 3 | 采购模块（采购单 + 拆单） | 完成（前端） |
+| Phase 4 | 验收/发货/签收/退换货 | 完成（前端） |
 | Phase 5 | 操作日志 + 邮件草稿 | 待开发 |
 | Phase 6 | 报表看板（5个看板 + ECharts） | 待开发 |
 | Phase 7 | 系统配置 + 完善 | 待开发 |
@@ -814,3 +814,18 @@ frontend/src/
 
 修改文件：
 - `frontend/src/App.tsx` — 替换 `/orders` PlaceholderPage 为 OrderListPage，新增 `/orders/:id` 子路由指向 OrderDetailPage
+
+### 2026-05-31: 采购/验收/发货/签收/退换货前端页面（Phase 3 + Phase 4 前端）
+
+新增文件：
+- `frontend/src/api/purchaseOrders.ts` — 采购单 API 层（getPurchases, createPurchase, updatePurchaseStatus, getPurchase, getOrderPurchases）
+- `frontend/src/api/inspectionRecords.ts` — 验收 API 层（createInspection, getPurchaseInspection, getOrderInspections, confirmInspection）
+- `frontend/src/api/shipmentRecords.ts` — 发货 API 层（getShipments, createShipment, getOrderShipments, confirmAddress, updateTracking）
+- `frontend/src/api/receiptRecords.ts` — 签收 API 层（createReceipt, archiveReceipt, getOrderReceipts）
+- `frontend/src/api/returnExchanges.ts` — 退换货 API 层（getReturns, createReturn, confirmReturn, completeReturn, getOrderReturns）
+- `frontend/src/pages/purchases/index.tsx` — 采购管理页，含列表筛选（状态/供应商）、状态流转按钮、创建采购单 Modal、详情 Modal
+- `frontend/src/pages/shipments/index.tsx` — 发货管理页，含发货记录列表、快递信息编辑 Modal、地址确认
+
+修改文件：
+- `frontend/src/pages/orders/DetailPage.tsx` — 嵌入验收管理（验收 Modal + 验收完成按钮）、发货管理（创建发货单 Modal）、签收管理（签收 Modal + 归档按钮）、退换货管理（发起退换货 Modal + 确认/完成按钮），各模块按订单状态条件显示
+- `frontend/src/App.tsx` — 替换 `/purchases` PlaceholderPage 为 PurchaseListPage，新增 `/shipments` 路由指向 ShipmentListPage
