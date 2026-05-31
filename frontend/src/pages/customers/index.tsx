@@ -289,7 +289,7 @@ export default function CustomerPage() {
       title: '历史金额',
       dataIndex: 'total_order_amount',
       width: 120,
-      render: (v: number) => `¥${v.toFixed(2)}`,
+      render: (v: number | string) => `¥${Number(v).toFixed(2)}`,
     },
     {
       title: '操作',
@@ -470,7 +470,7 @@ export default function CustomerPage() {
                       : '-'}
                   </Descriptions.Item>
                   <Descriptions.Item label="历史订单数">{detailData.total_order_count}</Descriptions.Item>
-                  <Descriptions.Item label="历史金额">¥{detailData.total_order_amount.toFixed(2)}</Descriptions.Item>
+                  <Descriptions.Item label="历史金额">¥{Number(detailData.total_order_amount).toFixed(2)}</Descriptions.Item>
                   <Descriptions.Item label="备注" span={2}>{detailData.remark || '-'}</Descriptions.Item>
                   <Descriptions.Item label="状态">
                     {detailData.status === 1 ? <Tag color="green">启用</Tag> : <Tag color="red">停用</Tag>}

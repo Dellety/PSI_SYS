@@ -569,7 +569,7 @@ export default function SupplierPage() {
                   <Descriptions.Item label="开户银行">{detailData.bank_name || '-'}</Descriptions.Item>
                   <Descriptions.Item label="银行账号">{detailData.bank_account || '-'}</Descriptions.Item>
                   <Descriptions.Item label="开户名称">{detailData.bank_account_name || '-'}</Descriptions.Item>
-                  <Descriptions.Item label="采购总金额">¥{detailData.total_purchase_amount.toFixed(2)}</Descriptions.Item>
+                  <Descriptions.Item label="采购总金额">¥{Number(detailData.total_purchase_amount).toFixed(2)}</Descriptions.Item>
                   <Descriptions.Item label="采购总次数">{detailData.total_purchase_count}</Descriptions.Item>
                   <Descriptions.Item label="最近采购日期">{detailData.last_purchase_date || '-'}</Descriptions.Item>
                   <Descriptions.Item label="备注" span={2}>{detailData.remark || '-'}</Descriptions.Item>
