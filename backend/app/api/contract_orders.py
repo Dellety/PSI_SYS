@@ -1,3 +1,4 @@
+from datetime import date as date_type, datetime
 from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, joinedload
@@ -17,6 +18,15 @@ sm = OrderStateMachine()
 ORDER_VIEW_ROLES = (EmployeeRole.sales, EmployeeRole.project_manager, EmployeeRole.admin)
 # 只有销售可以创建/编辑订单
 ORDER_EDIT_ROLES = (EmployeeRole.sales, EmployeeRole.admin)
+
+
+def _parse_date(value):
+    """Parse a date string (YYYY-MM-DD) to a Python date object."""
+    if value is None or isinstance(value, date_type):
+        return value
+    if isinstance(value, str) and value:
+        return date_type.fromisoformat(value)
+    return value
 
 
 def _order_to_dict(order: ContractOrder, role: str) -> dict:
@@ -210,7 +220,7 @@ def create_order(
         sales_id=current_user.id,
         project_manager_id=pm_id,
         total_amount=total_amount,
-        delivery_date=data.get("delivery_date"),
+        delivery_date=_parse_date(data.get("delivery_date")),
         is_urgent=data.get("is_urgent", 0),
         status=OrderStatus.pending_confirm,
         factory_demand_desc=data.get("factory_demand_desc"),
@@ -276,10 +286,13 @@ def update_order(
     if order.status not in editable_statuses:
         raise HTTPException(status_code=400, detail="当前状态不允许编辑订单")
 
-    allowed_fields = ["delivery_date", "is_urgent", "factory_demand_desc", "remark", "contract_no"]
+    allowed_fields = ["is_urgent", "factory_demand_desc", "remark", "contract_no"]
     for field in allowed_fields:
         if field in data:
             setattr(order, field, data[field])
+    # Handle date fields separately for SQLite compatibility
+    if "delivery_date" in data:
+        order.delivery_date = _parse_date(data["delivery_date"])
 
     # 支持更新明细
     if "items" in data:
@@ -374,7 +387,7 @@ def update_contract_info(
     if "contract_no" in data:
         order.contract_no = data["contract_no"]
     if "sign_date" in data:
-        order.sign_date = data["sign_date"]
+        order.sign_date = _parse_date(data["sign_date"])
     if "contract_attachment" in data:
         order.contract_attachment = data["contract_attachment"]
 

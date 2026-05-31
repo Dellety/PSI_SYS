@@ -829,3 +829,8 @@ frontend/src/
 修改文件：
 - `frontend/src/pages/orders/DetailPage.tsx` — 嵌入验收管理（验收 Modal + 验收完成按钮）、发货管理（创建发货单 Modal）、签收管理（签收 Modal + 归档按钮）、退换货管理（发起退换货 Modal + 确认/完成按钮），各模块按订单状态条件显示
 - `frontend/src/App.tsx` — 替换 `/purchases` PlaceholderPage 为 PurchaseListPage，新增 `/shipments` 路由指向 ShipmentListPage
+
+### 2026-05-31: E2E测试发现的Bug修复
+
+1. **contract_orders.py 日期解析 Bug**：`create_order`/`update_order`/`update_contract_info` 直接将 JSON 字符串赋值给 Date 类型字段，SQLite 不接受字符串日期。修复：添加 `_parse_date()` 辅助函数，在写入前将字符串转为 `datetime.date` 对象。
+2. **order_state_machine.py 缺少角色映射**：`shipped -> pending_receipt` 和 `pending_receipt -> received` 两个状态转换没有配置允许的角色，导致项目经理无法操作发货后的签收流程。修复：在 `_ROLE_TRANSITIONS` 中补充这两个转换的 `project_manager` 角色权限。

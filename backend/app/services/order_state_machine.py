@@ -65,6 +65,8 @@ _ROLE_TRANSITIONS: dict[tuple[str, str], list[str]] = {
     ("pending_inspect", "inspecting"):         ["project_manager"],
     ("inspecting", "pending_ship"):            ["project_manager"],
     ("pending_ship", "shipped"):               ["project_manager"],
+    ("shipped", "pending_receipt"):             ["project_manager"],
+    ("pending_receipt", "received"):            ["project_manager"],
     # 采购员操作
     ("pending_purchase", "purchasing"):        ["purchaser"],
     ("purchasing", "pending_inspect"):         ["purchaser"],
