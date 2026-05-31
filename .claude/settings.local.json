@@ -7,7 +7,8 @@
       "Bash(pip3 list *)",
       "Bash(sysctl -n machdep.cpu.brand_string)",
       "Bash(sw_vers)",
-      "Bash(chmod +x *)"
+      "Bash(chmod +x *)",
+      "mcp__zai-mcp-server__diagnose_error_screenshot"
     ]
   }
 }
