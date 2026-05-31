@@ -3,7 +3,11 @@
     "allow": [
       "Bash(python *)",
       "Bash(python3 *)",
-      "Bash(/Users/doni/PJ/PSI_SYS/backend/venv/bin/python *)"
+      "Bash(/Users/doni/PJ/PSI_SYS/backend/venv/bin/python *)",
+      "Bash(pip3 list *)",
+      "Bash(sysctl -n machdep.cpu.brand_string)",
+      "Bash(sw_vers)",
+      "Bash(chmod +x *)"
     ]
   }
 }
